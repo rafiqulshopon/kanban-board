@@ -35,15 +35,20 @@ export default function Card({ item }) {
   };
 
   const uploadFiles = (files) => {
-    const newFileList = fileList.concat(
-      Array.from(files).map((file) => ({
-        id: file.lastModified,
-        name: file.name,
-        status: 'done',
-        url: URL.createObjectURL(file),
-      }))
-    );
-    setFileList(newFileList);
+    const updatedFileList = [...fileList];
+    for (let file of files) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        updatedFileList.push({
+          uid: file.lastModified + file.name,
+          name: file.name,
+          status: 'done',
+          url: e.target.result,
+        });
+        setFileList([...updatedFileList]);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleFilesChange = (event) => {
@@ -51,9 +56,10 @@ export default function Card({ item }) {
   };
 
   const handleRemove = (file) => {
-    console.log({ file });
-    setFileList(fileList.filter((item) => item.uid !== file.uid));
+    const newFileList = fileList.filter((item) => item.uid !== file.uid);
+    setFileList(newFileList);
   };
+
   const dataCount = item.id === 1 ? 3 : 0;
 
   const iconStyle = { color: '#4b5563' };
@@ -134,7 +140,7 @@ export default function Card({ item }) {
           </div>
         )}
         <div
-          className='flex items-center space-x-1 text-sm '
+          className='flex items-center space-x-1 text-sm'
           role='button'
           tabIndex={0}
           onClick={showModal}
@@ -147,6 +153,7 @@ export default function Card({ item }) {
           <span className='text-gray-700 text-xs'>{item.date}</span>
         </div>
       </div>
+
       <Modal
         title='Attachments'
         open={isModalVisible}
@@ -158,8 +165,8 @@ export default function Card({ item }) {
           </Button>,
           <Button
             key='submit'
-            type='primary'
             className='bg-blue-500 hover:bg-blue-700'
+            type='primary'
             onClick={handleOk}
           >
             Upload
@@ -186,19 +193,21 @@ export default function Card({ item }) {
             <List.Item
               actions={[
                 <CloseCircleOutlined
-                  key={file.id}
+                  key={file.uid}
                   onClick={() => handleRemove(file)}
                 />,
               ]}
             >
               <List.Item.Meta
                 avatar={
-                  <Image
-                    src={file.url}
-                    alt={file.name}
-                    width={50}
-                    height={50}
-                  />
+                  <div className='relative w-12 h-12 rounded-full overflow-hidden'>
+                    <Image
+                      src={file.url}
+                      alt={file.name}
+                      layout='fill'
+                      objectFit='cover'
+                    />
+                  </div>
                 }
                 title={file.name}
               />
