@@ -1,3 +1,7 @@
+'use client';
+
+import React, { useRef, useState } from 'react';
+import { List, Modal, Button, Upload } from 'antd';
 import Image from 'next/image';
 import {
   Calendar,
@@ -8,10 +12,48 @@ import {
   PlusCircle,
   Plus,
 } from 'react-feather';
+import { UploadOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
 import image1 from '@/public/3.jpg';
 
 export default function Card({ item }) {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [fileList, setFileList] = useState([]);
+  const fileInputRef = useRef(null);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    console.log('Uploading files:', fileList);
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const uploadFiles = (files) => {
+    const newFileList = fileList.concat(
+      Array.from(files).map((file) => ({
+        id: file.lastModified,
+        name: file.name,
+        status: 'done',
+        url: URL.createObjectURL(file),
+      }))
+    );
+    setFileList(newFileList);
+  };
+
+  const handleFilesChange = (event) => {
+    uploadFiles(event.target.files);
+  };
+
+  const handleRemove = (file) => {
+    console.log({ file });
+    setFileList(fileList.filter((item) => item.uid !== file.uid));
+  };
   const dataCount = item.id === 1 ? 3 : 0;
 
   const iconStyle = { color: '#4b5563' };
@@ -91,15 +133,79 @@ export default function Card({ item }) {
             <span className='text-gray-900 text-xs'>{item.comment}</span>
           </div>
         )}
-        <div className='flex items-center space-x-1 text-sm'>
+        <div
+          className='flex items-center space-x-1 text-sm '
+          role='button'
+          tabIndex={0}
+          onClick={showModal}
+        >
           <Paperclip size={15} style={iconStyle} />
-          <span className='text-gray-900 text-xs'>{dataCount}</span>
+          <span className='text-gray-900 text-xs'>{fileList.length}</span>
         </div>
         <div className='flex items-center space-x-1 text-sm'>
           <Calendar size={15} style={iconStyle} />
           <span className='text-gray-700 text-xs'>{item.date}</span>
         </div>
       </div>
+      <Modal
+        title='Attachments'
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key='back' onClick={handleCancel}>
+            Return
+          </Button>,
+          <Button
+            key='submit'
+            type='primary'
+            className='bg-blue-500 hover:bg-blue-700'
+            onClick={handleOk}
+          >
+            Upload
+          </Button>,
+        ]}
+      >
+        <input
+          type='file'
+          multiple
+          onChange={handleFilesChange}
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+        />
+        <Button
+          icon={<UploadOutlined />}
+          onClick={() => fileInputRef.current.click()}
+        >
+          Select Files
+        </Button>
+        <List
+          itemLayout='horizontal'
+          dataSource={fileList}
+          renderItem={(file) => (
+            <List.Item
+              actions={[
+                <CloseCircleOutlined
+                  key={file.id}
+                  onClick={() => handleRemove(file)}
+                />,
+              ]}
+            >
+              <List.Item.Meta
+                avatar={
+                  <Image
+                    src={file.url}
+                    alt={file.name}
+                    width={50}
+                    height={50}
+                  />
+                }
+                title={file.name}
+              />
+            </List.Item>
+          )}
+        />
+      </Modal>
     </div>
   );
 }
