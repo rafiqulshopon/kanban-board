@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { List, Modal, Button, Upload } from 'antd';
+import axiosInstance from '../axios';
 import Image from 'next/image';
 import {
   Calendar,
@@ -19,46 +20,67 @@ import image1 from '@/public/3.jpg';
 export default function Card({ item }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const fileInputRef = useRef(null);
 
   const showModal = () => {
     setIsModalVisible(true);
   };
 
-  const handleOk = () => {
-    console.log('Uploading files:', fileList);
-    setIsModalVisible(false);
-  };
-
   const handleCancel = () => {
     setIsModalVisible(false);
   };
 
-  const uploadFiles = (files) => {
-    const updatedFileList = [...fileList];
-    for (let file of files) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        updatedFileList.push({
-          uid: file.lastModified + file.name,
-          name: file.name,
-          status: 'done',
-          url: e.target.result,
-        });
-        setFileList([...updatedFileList]);
-      };
-      reader.readAsDataURL(file);
+  const handleFilesChange = (event) => {
+    const files = event.target.files;
+    const newFileList = Array.from(files).map((file) => ({
+      ...file,
+      uid: file.lastModified + file.name,
+      preview: URL.createObjectURL(file),
+    }));
+    setFileList(newFileList);
+    setSelectedFiles(files);
+  };
+
+  console.log({ selectedFiles });
+
+  // Function to upload files
+  const uploadImages = async () => {
+    const formData = new FormData();
+    for (const file of selectedFiles) {
+      formData.append('images', file);
+    }
+    formData.append('taskId', item._id);
+
+    try {
+      const response = await axiosInstance.post('/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
-  const handleFilesChange = (event) => {
-    uploadFiles(event.target.files);
+  const handleOk = async () => {
+    await uploadImages();
+    setIsModalVisible(false);
+    setFileList([]);
   };
 
   const handleRemove = (file) => {
     const newFileList = fileList.filter((item) => item.uid !== file.uid);
     setFileList(newFileList);
   };
+
+  useEffect(() => {
+    return () => {
+      fileList.forEach((file) => URL.revokeObjectURL(file.preview));
+    };
+  }, [fileList]);
 
   const iconStyle = { color: '#4b5563' };
 
@@ -202,7 +224,7 @@ export default function Card({ item }) {
                 avatar={
                   <div className='relative w-12 h-12 rounded-full overflow-hidden'>
                     <Image
-                      src={file.url}
+                      src={file.preview}
                       alt={file.name}
                       layout='fill'
                       objectFit='cover'
