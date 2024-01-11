@@ -56,10 +56,13 @@ export default function List() {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className='h-screen flex overflow-x-auto scrollbar-thin scrollbar-thumb-red-600 scrollbar-track-gray-100'>
+    <div className='bg-white h-screen flex overflow-x-auto'>
       {Object.entries(taskGroups).map(([status, tasks]) => (
-        <div className='w-[28rem] bg-gray-100' key={status}>
-          <div className='px-2 h-16 flex items-center justify-between'>
+        <div
+          className='w-[28rem] bg-gray-100 m-2 rounded-lg shadow'
+          key={status}
+        >
+          <div className='px-4 h-16 flex items-center justify-between bg-white rounded-t-lg border-b border-gray-200'>
             <div className='flex items-center space-x-2'>
               <div
                 className={`w-5 h-6 ${getStatusColor(status)} rounded-l-full`}
@@ -71,11 +74,11 @@ export default function List() {
                   .join(' ')}
               </span>
             </div>
-            <div className='text-gray-800 leading-7 px-2 py-1 rounded-lg flex items-center justify-center bg-gray-200 font-medium'>
+            <div className='text-gray-800 px-2 py-1 rounded-lg flex items-center justify-center bg-gray-200 font-medium'>
               {tasks.length}
             </div>
           </div>
-          <div className='space-y-4 overflow-y-auto h-[calc(100%-4rem)] pb-28 px-2'>
+          <div className='space-y-4 overflow-y-auto h-[calc(100%-4rem)] p-4'>
             {tasks.map((task, index) => (
               <Card key={task._id || index} item={task} />
             ))}
