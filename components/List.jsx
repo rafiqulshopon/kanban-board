@@ -10,13 +10,34 @@ export default function List() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const groupTasksByStatus = (tasks) => {
-    return tasks.reduce((groups, task) => {
+  const orderedStatuses = [
+    'incomplete',
+    'todo',
+    'doing',
+    'under_review',
+    'completed',
+    'overdue',
+  ];
+
+  const groupAndSortTasks = (tasks) => {
+    let grouped = orderedStatuses.reduce(
+      (obj, status) => ({ ...obj, [status]: [] }),
+      {}
+    );
+
+    tasks.forEach((task) => {
       const status = task.status || 'others';
-      groups[status] = groups[status] || [];
-      groups[status].push(task);
-      return groups;
-    }, {});
+      if (grouped.hasOwnProperty(status)) {
+        grouped[status].push(task);
+      } else {
+        if (!grouped.others) {
+          grouped.others = [];
+        }
+        grouped.others.push(task);
+      }
+    });
+
+    return grouped;
   };
 
   const statusColorMap = {
@@ -33,8 +54,8 @@ export default function List() {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/task');
-        const groupedTasks = groupTasksByStatus(response.data);
-        setTaskGroups(groupedTasks);
+        const groupedAndSortedTasks = groupAndSortTasks(response.data);
+        setTaskGroups(groupedAndSortedTasks);
         setIsLoading(false);
       } catch (err) {
         setError(err);
