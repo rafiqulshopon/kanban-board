@@ -5,7 +5,7 @@ import axiosInstance from '../axios';
 import Card from '@/components/Card.jsx';
 
 export default function List() {
-  const [tasks, setTasks] = useState([]);
+  const [taskGroups, setTaskGroups] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const scrollbarStyles =
@@ -15,7 +15,8 @@ export default function List() {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/task');
-        setTasks(response.data);
+        const groupedTasks = groupTasksByStatus(response.data);
+        setTaskGroups(groupedTasks);
         setIsLoading(false);
       } catch (err) {
         setError(err);
@@ -25,6 +26,15 @@ export default function List() {
 
     fetchData();
   }, []);
+
+  const groupTasksByStatus = (tasks) => {
+    return tasks.reduce((groups, task) => {
+      const status = task.status || 'others';
+      groups[status] = groups[status] || [];
+      groups[status].push(task);
+      return groups;
+    }, {});
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -49,36 +59,26 @@ export default function List() {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className={`flex overflow-x-auto ${scrollbarStyles} h-screen`}>
-      <div className='flex space-x-4'>
-        {tasks.map((task, index) => (
-          <div
-            className='w-[28rem] bg-gray-100 h-screen'
-            key={task._id || index}
-          >
-            <div className='flex items-center justify-between px-2 h-16'>
-              <div className='flex items-center space-x-2'>
-                <div
-                  className={`w-5 h-6 ${getStatusColor(
-                    task.status
-                  )} rounded-l-full`}
-                ></div>
-                <span className='text-gray-800 font-semibold leading-7'>
-                  {task.name}
-                </span>
-              </div>
-              <div className='text-gray-800 leading-7 px-2 py-1 rounded-lg flex items-center justify-center bg-gray-200 font-medium'>
-                {task.imageCount}
-              </div>
-            </div>
-            <div
-              className={`space-y-4 overflow-y-auto px-2 ${scrollbarStyles} h-[calc(100%-4rem)] pb-28`}
-            >
-              <Card item={task} />
+    <div className='h-screen flex overflow-x-auto scrollbar-thin scrollbar-thumb-red-600 scrollbar-track-gray-100'>
+      {Object.entries(taskGroups).map(([status, tasks]) => (
+        <div className='w-[28rem] bg-gray-100' key={status}>
+          <div className='px-2 h-16 flex items-center justify-between'>
+            <div className='flex items-center space-x-2'>
+              <div
+                className={`w-5 h-6 ${getStatusColor(status)} rounded-l-full`}
+              ></div>
+              <span className='text-gray-800 font-semibold leading-7'>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </span>
             </div>
           </div>
-        ))}
-      </div>
+          <div className='space-y-4 overflow-y-auto h-[calc(100%-4rem)] pb-28 px-2'>
+            {tasks.map((task, index) => (
+              <Card key={task._id || index} item={task} />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
