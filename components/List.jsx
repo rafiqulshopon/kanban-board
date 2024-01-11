@@ -34,23 +34,14 @@ export default function List() {
     }, {});
   };
 
+  const statusColorMap = {
+    incomplete: 'bg-red-600',
+    todo: 'bg-blue-400',
+    doing: 'bg-yellow-400',
+  };
+
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'incomplete':
-        return 'bg-red-600';
-      case 'todo':
-        return 'bg-blue-400';
-      case 'doing':
-        return 'bg-yellow-400';
-      case 'under_review':
-        return 'bg-purple-400';
-      case 'completed':
-        return 'bg-green-400';
-      case 'overdue':
-        return 'bg-orange-400';
-      default:
-        return 'bg-gray-400';
-    }
+    return statusColorMap[status] || '';
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -66,7 +57,10 @@ export default function List() {
                 className={`w-5 h-6 ${getStatusColor(status)} rounded-l-full`}
               ></div>
               <span className='text-gray-800 font-semibold leading-7'>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                {status
+                  .split('_')
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ')}
               </span>
             </div>
           </div>

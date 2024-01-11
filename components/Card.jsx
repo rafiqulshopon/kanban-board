@@ -1,8 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
-import { List, Modal, Button, Spin } from 'antd';
-import axiosInstance from '../axios';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import {
   Calendar,
@@ -13,90 +11,20 @@ import {
   PlusCircle,
   Plus,
 } from 'react-feather';
-import { UploadOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
 import image1 from '@/public/3.jpg';
+import ImageUploadModal from '@/components/ImageUploadModal.jsx';
 
 export default function Card({ item }) {
-  const [existingImages, setExistingImages] = useState([]);
-  const [loadingImages, setLoadingImages] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [fileList, setFileList] = useState([]);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const fileInputRef = useRef(null);
-
-  const fetchImages = async () => {
-    try {
-      setLoadingImages(true);
-      const response = await axiosInstance.get(`/image/${item._id}`);
-      setExistingImages(response.data);
-      setLoadingImages(false);
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      setLoadingImages(false);
-    }
-  };
 
   const showModal = () => {
     setIsModalVisible(true);
-    fetchImages();
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-
-  const handleFilesChange = (event) => {
-    const files = event.target.files;
-    const newFileList = Array.from(files).map((file) => ({
-      ...file,
-      uid: file.lastModified + file.name,
-      preview: URL.createObjectURL(file),
-    }));
-
-    setFileList((prevFileList) => prevFileList.concat(newFileList));
-    setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...files]);
-  };
-
-  console.log({ selectedFiles });
-
-  // Function to upload files
-  const uploadImages = async () => {
-    const formData = new FormData();
-    for (const file of selectedFiles) {
-      formData.append('images', file);
-    }
-    formData.append('taskId', item._id);
-
-    try {
-      const response = await axiosInstance.post('/image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleOk = async () => {
-    await uploadImages();
-    setIsModalVisible(false);
-    setFileList([]);
-  };
-
-  const handleRemove = (file) => {
-    const newFileList = fileList.filter((item) => item.uid !== file.uid);
-    setFileList(newFileList);
-  };
-
-  useEffect(() => {
-    return () => {
-      fileList.forEach((file) => URL.revokeObjectURL(file.preview));
-    };
-  }, [fileList]);
 
   const iconStyle = { color: '#4b5563' };
 
@@ -192,93 +120,11 @@ export default function Card({ item }) {
         </div>
       </div>
 
-      <Modal
-        title='Attachments'
-        open={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        footer={[
-          <Button key='back' onClick={handleCancel}>
-            Return
-          </Button>,
-          <Button
-            key='submit'
-            type='primary'
-            onClick={handleOk}
-            disabled={fileList.length === 0}
-            className='bg-blue-500'
-          >
-            Upload
-          </Button>,
-        ]}
-      >
-        <input
-          type='file'
-          multiple
-          onChange={handleFilesChange}
-          ref={fileInputRef}
-          style={{ display: 'none' }}
-        />
-        <Button
-          icon={<UploadOutlined />}
-          onClick={() => fileInputRef.current.click()}
-          className='mt-2'
-        >
-          Select Files
-        </Button>
-        {loadingImages ? (
-          <div className='flex justify-center items-center h-20'>
-            <Spin />
-          </div>
-        ) : existingImages.length > 0 ? (
-          <>
-            <List
-              itemLayout='horizontal'
-              dataSource={existingImages}
-              renderItem={(image) => (
-                <List.Item>
-                  <Image
-                    src={image.image_url}
-                    alt='Attachment'
-                    width={50}
-                    height={50}
-                    className='rounded-full'
-                  />
-                </List.Item>
-              )}
-            />
-          </>
-        ) : null}
-
-        <List
-          itemLayout='horizontal'
-          dataSource={fileList}
-          renderItem={(file) => (
-            <List.Item
-              actions={[
-                <CloseCircleOutlined
-                  key={file.uid}
-                  onClick={() => handleRemove(file)}
-                />,
-              ]}
-            >
-              <List.Item.Meta
-                avatar={
-                  <div className='relative w-12 h-12 rounded-full overflow-hidden'>
-                    <Image
-                      src={file.preview}
-                      alt={file.name}
-                      layout='fill'
-                      objectFit='cover'
-                    />
-                  </div>
-                }
-                title={file.name}
-              />
-            </List.Item>
-          )}
-        />
-      </Modal>
+      <ImageUploadModal
+        isModalVisible={isModalVisible}
+        onClose={handleCancel}
+        item={item}
+      />
     </div>
   );
 }
