@@ -211,18 +211,26 @@ export default function Card({ item }) {
           </Button>,
         ]}
       >
+        <input
+          type='file'
+          multiple
+          onChange={handleFilesChange}
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+        />
+        <Button
+          icon={<UploadOutlined />}
+          onClick={() => fileInputRef.current.click()}
+          className='mt-2'
+        >
+          Select Files
+        </Button>
         {loadingImages ? (
           <div className='flex justify-center items-center h-20'>
             <Spin />
           </div>
-        ) : (
+        ) : existingImages.length > 0 ? (
           <>
-            <Button
-              icon={<UploadOutlined />}
-              onClick={() => fileInputRef.current.click()}
-            >
-              Select Files
-            </Button>
             <List
               itemLayout='horizontal'
               dataSource={existingImages}
@@ -238,43 +246,37 @@ export default function Card({ item }) {
                 </List.Item>
               )}
             />
-            <input
-              type='file'
-              multiple
-              onChange={handleFilesChange}
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-            />
-            <List
-              itemLayout='horizontal'
-              dataSource={fileList}
-              renderItem={(file) => (
-                <List.Item
-                  actions={[
-                    <CloseCircleOutlined
-                      key={file.uid}
-                      onClick={() => handleRemove(file)}
-                    />,
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <div className='relative w-12 h-12 rounded-full overflow-hidden'>
-                        <Image
-                          src={file.preview}
-                          alt={file.name}
-                          layout='fill'
-                          objectFit='cover'
-                        />
-                      </div>
-                    }
-                    title={file.name}
-                  />
-                </List.Item>
-              )}
-            />
           </>
-        )}
+        ) : null}
+
+        <List
+          itemLayout='horizontal'
+          dataSource={fileList}
+          renderItem={(file) => (
+            <List.Item
+              actions={[
+                <CloseCircleOutlined
+                  key={file.uid}
+                  onClick={() => handleRemove(file)}
+                />,
+              ]}
+            >
+              <List.Item.Meta
+                avatar={
+                  <div className='relative w-12 h-12 rounded-full overflow-hidden'>
+                    <Image
+                      src={file.preview}
+                      alt={file.name}
+                      layout='fill'
+                      objectFit='cover'
+                    />
+                  </div>
+                }
+                title={file.name}
+              />
+            </List.Item>
+          )}
+        />
       </Modal>
     </div>
   );
