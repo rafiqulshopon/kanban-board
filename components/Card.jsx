@@ -193,7 +193,7 @@ export default function Card({ item }) {
 
       <Modal
         title='Attachments'
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         footer={[
@@ -205,7 +205,7 @@ export default function Card({ item }) {
             type='primary'
             onClick={handleOk}
             disabled={fileList.length === 0}
-            className='bg-blue-500 hover:bg-blue-700'
+            className='bg-blue-500'
           >
             Upload
           </Button>,
