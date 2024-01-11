@@ -74,8 +74,6 @@ export default function List() {
     );
   }
 
-  if (error) return <div>Error: {error.message}</div>;
-
   return (
     <div className='bg-white h-screen flex overflow-x-auto'>
       {Object.entries(taskGroups).map(([status, tasks]) => (
