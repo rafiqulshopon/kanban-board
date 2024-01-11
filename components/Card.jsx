@@ -53,8 +53,9 @@ export default function Card({ item }) {
       uid: file.lastModified + file.name,
       preview: URL.createObjectURL(file),
     }));
-    setFileList(newFileList);
-    setSelectedFiles(files);
+
+    setFileList((prevFileList) => prevFileList.concat(newFileList));
+    setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...files]);
   };
 
   console.log({ selectedFiles });
