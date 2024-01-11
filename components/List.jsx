@@ -66,6 +66,16 @@ export default function List() {
     fetchData();
   }, []);
 
+  const refreshTasks = async () => {
+    try {
+      const response = await axiosInstance.get('/task');
+      const groupedAndSortedTasks = groupAndSortTasks(response.data);
+      setTaskGroups(groupedAndSortedTasks);
+    } catch (err) {
+      setError(err);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className='flex justify-center items-center h-screen'>
@@ -99,7 +109,11 @@ export default function List() {
           </div>
           <div className='space-y-4 overflow-y-auto h-[calc(100%-4rem)] p-4'>
             {tasks.map((task, index) => (
-              <Card key={task._id || index} item={task} />
+              <Card
+                key={task._id || index}
+                item={task}
+                refreshTasks={refreshTasks}
+              />
             ))}
           </div>
         </div>

@@ -15,7 +15,7 @@ import {
 import image1 from '@/public/3.jpg';
 import ImageUploadModal from '@/components/ImageUploadModal.jsx';
 
-export default function Card({ item }) {
+export default function Card({ item, refreshTasks }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const showModal = () => {
@@ -124,6 +124,7 @@ export default function Card({ item }) {
         isModalVisible={isModalVisible}
         onClose={handleCancel}
         item={item}
+        refreshTasks={refreshTasks}
       />
     </div>
   );

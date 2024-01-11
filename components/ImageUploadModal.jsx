@@ -2,13 +2,18 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Modal, Button, Spin, List } from 'antd';
-import { UploadOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import {
+  UploadOutlined,
+  CloseCircleOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 import axiosInstance from '../axios';
 import Image from 'next/image';
 
-const ImageUploadModal = ({ isModalVisible, onClose, item }) => {
+const ImageUploadModal = ({ isModalVisible, onClose, item, refreshTasks }) => {
   const [existingImages, setExistingImages] = useState([]);
   const [loadingImages, setLoadingImages] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const fileInputRef = useRef(null);
@@ -36,7 +41,8 @@ const ImageUploadModal = ({ isModalVisible, onClose, item }) => {
     setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...files]);
   };
 
-  const uploadImages = async () => {
+  const handleUploadImages = async () => {
+    setIsUploading(true);
     const formData = new FormData();
     for (const file of selectedFiles) {
       formData.append('images', file);
@@ -49,16 +55,17 @@ const ImageUploadModal = ({ isModalVisible, onClose, item }) => {
           'Content-Type': 'multipart/form-data',
         },
       });
-
-      fetchImages();
     } catch (error) {
       console.error('Error uploading images:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleOk = async () => {
-    await uploadImages();
+    await handleUploadImages();
     onClose();
+    refreshTasks();
   };
 
   const handleRemove = (fileUid) => {
@@ -92,7 +99,7 @@ const ImageUploadModal = ({ isModalVisible, onClose, item }) => {
           disabled={fileList.length === 0}
           className='bg-blue-500'
         >
-          Upload
+          {isUploading ? <LoadingOutlined /> : 'Upload'}
         </Button>,
       ]}
     >
@@ -126,7 +133,7 @@ const ImageUploadModal = ({ isModalVisible, onClose, item }) => {
                   alt='Attachment'
                   width={50}
                   height={50}
-                  className='rounded-full'
+                  className='w-12 h-12 rounded-full'
                 />
               </List.Item>
             )}
