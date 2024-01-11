@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Spin } from 'antd';
 import axiosInstance from '../axios';
 import Card from '@/components/Card.jsx';
 
@@ -8,22 +9,6 @@ export default function List() {
   const [taskGroups, setTaskGroups] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get('/task');
-        const groupedTasks = groupTasksByStatus(response.data);
-        setTaskGroups(groupedTasks);
-        setIsLoading(false);
-      } catch (err) {
-        setError(err);
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   const groupTasksByStatus = (tasks) => {
     return tasks.reduce((groups, task) => {
@@ -44,7 +29,30 @@ export default function List() {
     return statusColorMap[status] || '';
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get('/task');
+        const groupedTasks = groupTasksByStatus(response.data);
+        setTaskGroups(groupedTasks);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err);
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <Spin size='large' />
+      </div>
+    );
+  }
+
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -62,6 +70,9 @@ export default function List() {
                   .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                   .join(' ')}
               </span>
+            </div>
+            <div className='text-gray-800 leading-7 px-2 py-1 rounded-lg flex items-center justify-center bg-gray-200 font-medium'>
+              {tasks.length}
             </div>
           </div>
           <div className='space-y-4 overflow-y-auto h-[calc(100%-4rem)] pb-28 px-2'>
