@@ -60,8 +60,6 @@ export default function Card({ item }) {
     setFileList(newFileList);
   };
 
-  const dataCount = item.id === 1 ? 3 : 0;
-
   const iconStyle = { color: '#4b5563' };
 
   return (
@@ -146,11 +144,13 @@ export default function Card({ item }) {
           onClick={showModal}
         >
           <Paperclip size={15} style={iconStyle} />
-          <span className='text-gray-900 text-xs'>{fileList.length}</span>
+          <span className='text-gray-900 text-xs'>{item.imageCount}</span>
         </div>
         <div className='flex items-center space-x-1 text-sm'>
           <Calendar size={15} style={iconStyle} />
-          <span className='text-gray-700 text-xs'>{item.date}</span>
+          <span className='text-gray-700 text-xs'>
+            {new Date(item.date).toLocaleDateString()}
+          </span>
         </div>
       </div>
 

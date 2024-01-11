@@ -8,8 +8,6 @@ export default function List() {
   const [taskGroups, setTaskGroups] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const scrollbarStyles =
-    'scrollbar-thin scrollbar-thumb-red-600 scrollbar-track-gray-100';
 
   useEffect(() => {
     const fetchData = async () => {
