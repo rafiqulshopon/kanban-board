@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { List, Modal, Button, Upload } from 'antd';
+import { List, Modal, Button, Spin } from 'antd';
 import axiosInstance from '../axios';
 import Image from 'next/image';
 import {
@@ -18,13 +18,28 @@ import { UploadOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import image1 from '@/public/3.jpg';
 
 export default function Card({ item }) {
+  const [existingImages, setExistingImages] = useState([]);
+  const [loadingImages, setLoadingImages] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const fileInputRef = useRef(null);
 
+  const fetchImages = async () => {
+    try {
+      setLoadingImages(true);
+      const response = await axiosInstance.get(`/image/${item._id}`);
+      setExistingImages(response.data);
+      setLoadingImages(false);
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      setLoadingImages(false);
+    }
+  };
+
   const showModal = () => {
     setIsModalVisible(true);
+    fetchImages();
   };
 
   const handleCancel = () => {
@@ -178,7 +193,7 @@ export default function Card({ item }) {
 
       <Modal
         title='Attachments'
-        open={isModalVisible}
+        visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         footer={[
@@ -187,55 +202,79 @@ export default function Card({ item }) {
           </Button>,
           <Button
             key='submit'
-            className='bg-blue-500 hover:bg-blue-700'
             type='primary'
             onClick={handleOk}
+            disabled={fileList.length === 0}
+            className='bg-blue-500 hover:bg-blue-700'
           >
             Upload
           </Button>,
         ]}
       >
-        <input
-          type='file'
-          multiple
-          onChange={handleFilesChange}
-          ref={fileInputRef}
-          style={{ display: 'none' }}
-        />
-        <Button
-          icon={<UploadOutlined />}
-          onClick={() => fileInputRef.current.click()}
-        >
-          Select Files
-        </Button>
-        <List
-          itemLayout='horizontal'
-          dataSource={fileList}
-          renderItem={(file) => (
-            <List.Item
-              actions={[
-                <CloseCircleOutlined
-                  key={file.uid}
-                  onClick={() => handleRemove(file)}
-                />,
-              ]}
+        {loadingImages ? (
+          <div className='flex justify-center items-center h-20'>
+            <Spin />
+          </div>
+        ) : (
+          <>
+            <Button
+              icon={<UploadOutlined />}
+              onClick={() => fileInputRef.current.click()}
             >
-              <List.Item.Meta
-                avatar={
-                  <div className='relative w-12 h-12 rounded-full overflow-hidden'>
-                    <Image
-                      src={file.preview}
-                      alt={file.name}
-                      layout='fill'
-                      objectFit='cover'
-                    />
-                  </div>
-                }
-                title={file.name}
-              />
-            </List.Item>
-          )}
-        />
+              Select Files
+            </Button>
+            <List
+              itemLayout='horizontal'
+              dataSource={existingImages}
+              renderItem={(image) => (
+                <List.Item>
+                  <Image
+                    src={image.image_url}
+                    alt='Attachment'
+                    width={50}
+                    height={50}
+                    className='rounded-full'
+                  />
+                </List.Item>
+              )}
+            />
+            <input
+              type='file'
+              multiple
+              onChange={handleFilesChange}
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+            />
+            <List
+              itemLayout='horizontal'
+              dataSource={fileList}
+              renderItem={(file) => (
+                <List.Item
+                  actions={[
+                    <CloseCircleOutlined
+                      key={file.uid}
+                      onClick={() => handleRemove(file)}
+                    />,
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <div className='relative w-12 h-12 rounded-full overflow-hidden'>
+                        <Image
+                          src={file.preview}
+                          alt={file.name}
+                          layout='fill'
+                          objectFit='cover'
+                        />
+                      </div>
+                    }
+                    title={file.name}
+                  />
+                </List.Item>
+              )}
+            />
+          </>
+        )}
       </Modal>
     </div>
   );
